@@ -392,7 +392,7 @@ This demonstrates the clearInterval(name) function.
         device.button("stop").onPress(stop);
     }
 ```
-ONe the button on pin 4 is pressed this will read the temperature probe every 5 seconds indefinitely until the button on pin 5 is pressed, clearing the interval.
+When the button on pin 4 is pressed this will read the temperature probe every 5 seconds indefinitely until the button on pin 5 is pressed, clearing the interval.
 
 
 ---
