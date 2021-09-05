@@ -9,6 +9,16 @@ The framework extracts away all of the details of handling simple electrical com
 4. Rotary Encoders
 5. An interval function that is similar to Javascript's setInterval()
 
+## Installation ##
+
+1. Download or clone the ArduinoDeviceMaster.ino file from the repo.
+2. Open the ArduinoDeviceMaster.ino file with the Arduino IDE.
+3. Save-As a new file for your project.
+4. Edit the "DEVICE CONFIG SECTION" with the correct number of each type of electrical component. (Seriously, this is soooooo important. I wrote this thing and most of the times when my program isn't working it's because I didn't included enough of each type of component...)
+5. Add and configure your components in the void setup() function.
+5. Create your program in the "USER PROGRAM SECTION" section.
+6. (optional) uncomment the "#define admDebug Serial" line so that you can see any errors and verify that your program is working with the framework properly.
+
 ## Hello World Example ##  
 
 Your program goes before the default setup function and your device setup goes in the setup function:
@@ -63,21 +73,16 @@ For efficiency the framework uses preprocessor directives to control how many of
 //how many intervals do you need at once, comment out for 0
 #define TOTAL_INTERVALS 1
 ```
+By default the framework has several of each type of component, probably more than you need for most projects, but the most common mistake is to not have enough of each component specified so it made sense to have extra. This wastes space though, so lower the numbers if needed.  
 
 If you comment out a device type completely the framework wont even include the code needed to support it, saving a few extra bytes. (Does the Arduino complier optimize enough to not include class code if the class is never initialized? If so you can just set it to 0 I guess... either way....)
-
-If you are using Common Cathode RGB LEDs then comment out this line:
-```c++
-#define COMMON_ANODE
-```
-(Currently the framework requires that all RGS LEDs be the same type. You can get around this by reversing the values for certain LEDs, i.e. 255-0 instead of 0-255)
 
 You can also enable debug output by un-commenting this line:
 
 ```c++
-//#define admDebug
+//#define admDebug Serial
 ```
-(This will also increase program size significantly)
+(This will also increase program size significantly). 
 
 ---
 ## How to use the framework ##
@@ -95,7 +100,7 @@ void setup() {
 }
 ```
 
-Your program will consist of various functions that you attach to events associated with the appropriate component. (all in the void setup() routine). Once a component has been added you reference it's properties by supplying it's name to the appropriate device lookup function, such as "device.button" or "device.led".
+Your program will consist of various functions that you attach to events associated with the appropriate component. (all in the void setup() routine). Once a component has been added you reference it's properties by supplying it's name to the appropriate device lookup function, such as "device.button(name)" or "device.led(name)".
 
 This program has two buttons on pins 2 and 3. When you press the buttons a counter is incremented or decremented and printed
 
@@ -120,7 +125,7 @@ void numDown() {
 }
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(9600); 
 
     //add the buttons
     device.addButton("btnUp", 2);
@@ -133,7 +138,7 @@ void setup() {
 }
 ```
 
-Most of the components have at least one property that can be changed after you create it (or at any time). For example Potentiometers have a "range" capability so that they return values from 0-num instead of their native value (useful for 0-100 or 0-255, etc.)
+Most of the components have at least one property that can be changed after you create it. For example Potentiometers have a "range" capability so that they return values from 0-num instead of their native value (useful for 0-100 or 0-255, etc.)
 
 EX:
 
@@ -246,6 +251,8 @@ __Create with:__
 __properties__
 * isDimmable
 If set to true the LED can use the setLevel() command to dim the LED (requires a PMW pin). Only for regular LEDs, not RGB.
+* commonAnode
+If true (default) the RGB is common anode type (common pin is hot). Set to false if yours is of the Common Cathode type.
 
 __Commands__
 * turnOn()

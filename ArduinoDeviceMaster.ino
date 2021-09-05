@@ -1,10 +1,26 @@
-/*************************************************************
+/******************************************************************************
   Arduino Device Master
   Author: Jonathan Wyett
-  Version: 1.0.0 
-/**************************************************************/
+  Version: 1.1.0 
+/*****************************************************************************/
 
+
+/*****************************************************************************/
+/****** DEVICE CONFIG SECTION     ********************************************/
 //#define admDebug Serial //uncomment to see DeviceMaster debug info
+//how many of each type of component, comment out for 0
+#define TOTAL_LEDS 10 
+#define TOTAL_BUTTONS 5
+#define TOTAL_POTS 3
+#define TOTAL_ROTARY_ENCODERS 1
+//how many intervals do you need at once, comment out for 0
+#define TOTAL_INTERVALS 5
+
+/****** END DEVICE CONFIG SECTION     ****************************************/
+/*****************************************************************************/
+
+
+
 #define LOOP_DELAY 1 //this is for the master Arduino loop, lower is better 
 #define DEBOUNCE_DELAY 50 //for button debounce
 
@@ -13,25 +29,7 @@
 #define BUTTON_PRESS_LOW 1
 #define BUTTON_INPUT_PULLUP 3
 
-//how many of each type of component, comment out for 0
-#define TOTAL_LEDS 5 
-#define TOTAL_BUTTONS 5
-#define TOTAL_POTS 5
-#define TOTAL_ROTARY_ENCODERS 5
-
-//how many intervals do you need at once, comment out for 0
-#define TOTAL_INTERVALS 5
-//for clarity use preprocessor directives for interval messages and names
-//interval msgs can be 0-255
-#define INTERVAL_MSG_TEST 64
-//interval names can be 1-255
-#define INTERVAL_NAME_TEST 32
-
-//MAYBE TODO add a switch device that inherits button. Just for code readability.
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
+/*****************************************************************************/
 
 //Callbacks
 typedef void (*basicCallback)();
@@ -41,7 +39,13 @@ typedef void (*oneParamCallback)(int);
   class Interval {
     public:
       //adds an interval to the local heap, returns false if no space
-      bool addInterval(oneParamCallback callback, int wait, int count, byte msg, byte intervalName) {
+      bool addInterval(oneParamCallback 
+                      callback,
+                      int wait,
+                      int count,
+                      byte msg,
+                      byte intervalName) {
+
         byte slot = findSlot();
         
         if (slot<255) {
@@ -87,7 +91,8 @@ typedef void (*oneParamCallback)(int);
             if ((millis()-lastRuns[i])>=waits[i]) {
                callbacks[i](msgs[i]); //run the callback function
                lastRuns[i] = millis(); //update the last run
-               if (counts[i]>0) { //for intervals that only run a certain # of times (0 is infinit)
+               //for intervals that only run a certain # of times (0 is infinit)
+               if (counts[i]>0) { 
                 counts[i]--; //decrement the count
                 //now check if the count has reached 0
                 if (counts[i]==0) {
@@ -428,7 +433,7 @@ typedef void (*oneParamCallback)(int);
       byte R, G, B;
       bool isRGB = false;
       bool isDimmable = false;
-      bool commanAnode = true;
+      bool commonAnode = true;
       byte level = 0;
       const char *name;
 
@@ -495,11 +500,11 @@ typedef void (*oneParamCallback)(int);
         R = newR;
         G = newG;
         B = newB;
-        #ifdef COMMON_ANODE
+        if (commonAnode) {
           R = 255-R;
           G = 255-G;
           B = 255-B;
-        #endif
+        }
         #ifdef admDebug
           admDebug.print("New RGB Color: ");
           admDebug.print(R);
@@ -548,7 +553,7 @@ typedef void (*oneParamCallback)(int);
           if (isRGB) {
             if (state==LOW) {
               byte val = 0;
-              if (commanAnode) {
+              if (commonAnode) {
                 val = 255;
               }
               analogWrite(pin, val);
@@ -581,7 +586,8 @@ typedef void (*oneParamCallback)(int);
           blinkCount = 0;
           blinkMax = (count *2)-1; //since each blink is 2 flips  
           blinkInt = 0;
-          blinkDelay = delay/LOOP_DELAY; //so if the loop runs every 250ms and you set delay to 1000 it will actually blink every second
+          //so if the loop runs every 250ms and you set delay to 1000 it will actually blink every second
+          blinkDelay = delay/LOOP_DELAY; 
           blinking = true;
           setState(HIGH); //blink should illuminate immediately  
           }
@@ -807,18 +813,16 @@ class Device {
 //DEVICE DECLARATION
 Device device; 
 
-/******************************************************************************************************/
-/******      USER PROGRAM       ***********************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
+/*****************************************************************************/
+/******      USER PROGRAM SECTION   ******************************************/
+/*****************************************************************************/
+/*****************************************************************************/
 
 
 //put any user code, callbacks, etc here. This is your program.
 
-/******************************************************************************************************/
-/*******    SETUP YOUR DEVICE      ********************************************************************/
-/******************************************************************************************************/
-/******************************************************************************************************/
+
+/*****************************************************************************/
 
 void setup() {
   // init  serial
