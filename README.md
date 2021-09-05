@@ -151,6 +151,37 @@ EX:
 
 ---
 
+## The "device" Class ##
+All interactions with the framework use the "device" class. It's very simple to use.
+
+__Adding Components__
+All components are added using the corresponding _add_ function. The all require a name and one or more pin numbers as appropriate.
+* addButton(name, PIN) - add a button
+* addPot(name, PIN) - add a potentiometer
+* addRotaryEncoder(name, PIN_SW, PIN_DT, PIN CLK) - add a rotary encoder
+* addLED(name, PIN) - add a regular LED
+* addLED(name, PIN_R, PIN_G, PIN_B) - add an RGB LED
+* addInterval(callback, delay) - add a simple, infinite interval
+* addInterval(callback, delay, repeat) - add an interval that only fires a certain number of times
+* addInterval(callback, delay, repeat, message) - add an interval that provides a message to the callback
+* addInterval(callback, delay, repeat, message, name) - add an interval with a repeat, message and name (names are needed if you want to clear/stop the interval later)
+
+__Configuring Components__
+Once a component is added you can set it up or modify it by using the appropriate lookup function.
+* device.button(name)
+* device.led(name)
+* device.pot(name)
+* device.rotaryEncoder(name)
+So to modify an LED type you would use:
+```c++
+    device.led("red").isDimmable = true;
+    device.led("red").turnOn();
+```
+
+__Intervals__
+In addition to the various addInterval() functions, Intervals have a unique function called device.clearInterval(name) that clears the associated interval.
+
+---
 # Component Types #  
 
 ## Button ##  
