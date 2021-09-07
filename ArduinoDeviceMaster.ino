@@ -1,7 +1,7 @@
 /******************************************************************************
   Arduino Device Master
   Author: Jonathan Wyett
-  Version: 1.1.0 
+  Version: 1.1.1 
 /*****************************************************************************/
 
 
@@ -306,7 +306,6 @@ typedef void (*oneParamCallback)(int);
         void checkForPress() {
           //get state
           state = digitalRead(pin);
-          
           if (state!=oldState) {
             if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
               oldState = state;
@@ -319,12 +318,11 @@ typedef void (*oneParamCallback)(int);
                 admDebug.println(state);
               #endif
               bool isPressed = false;
-              if (BUTTON_PRESS_HIGH) {
+              if (pressMode==BUTTON_PRESS_HIGH) {
                 isPressed = (state==HIGH) ? true : false;
               } else {
                 isPressed = (state==LOW) ? true : false;
-              }
-              
+              }    
               if(isPressed==true && hasPressFunc) {
                 pressed();    
               } else if (isPressed==false && hasReleaseFunc) {
