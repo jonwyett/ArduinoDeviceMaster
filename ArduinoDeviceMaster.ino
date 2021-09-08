@@ -7,7 +7,7 @@
 
 /*****************************************************************************/
 /****** DEVICE CONFIG SECTION     ********************************************/
-//#define admDebug Serial //uncomment to see DeviceMaster debug info
+#define admDebug Serial //uncomment to see DeviceMaster debug info
 //how many of each type of component, comment out for 0
 #define TOTAL_LEDS 10 
 #define TOTAL_BUTTONS 5
@@ -19,9 +19,6 @@
 /****** END DEVICE CONFIG SECTION     ****************************************/
 /*****************************************************************************/
 
-
-
-#define LOOP_DELAY 1 //this is for the master Arduino loop, lower is better 
 #define DEBOUNCE_DELAY 50 //for button debounce
 
 //for setting the button modes
@@ -542,7 +539,7 @@ typedef void (*oneParamCallback)(int);
       private:
         int blinkCount = 0;
         int blinkMax = 0;
-        int blinkInt = 0;
+        unsigned long lastBlinkTime = 0;
         int blinkDelay = 0;
         bool blinking = false;
 
@@ -582,27 +579,28 @@ typedef void (*oneParamCallback)(int);
         }
         void initBlink(int delay, int count) {
           blinkCount = 0;
-          blinkMax = (count *2)-1; //since each blink is 2 flips  
-          blinkInt = 0;
-          //so if the loop runs every 250ms and you set delay to 1000 it will actually blink every second
-          blinkDelay = delay/LOOP_DELAY; 
+          blinkMax = (count *2)+1; //since each blink is 2 flips  
+          lastBlinkTime = 0;
           blinking = true;
+          blinkDelay = delay/2; //since we need to flip
           setState(HIGH); //blink should illuminate immediately  
-          }
+         }
 
         void clearBlink() {
           blinkCount = 0;
           blinkMax = 0;
-          blinkInt = 0;
+          lastBlinkTime = 0;
           blinkDelay = 0;
           blinking = false;  
         }
          
         void runBlink() {
           if (blinking) {
-            blinkInt++;  
-            if (blinkInt>=blinkDelay) {
-              blinkInt = 0;
+            //Serial.print(millis()-lastBlinkTime);
+            //Serial.print("/");
+            //Serial.println(blinkDelay);
+            if (millis()-lastBlinkTime>=blinkDelay) {
+              lastBlinkTime = millis();
               blinkCount++;
               flip();
               if (blinkCount>=blinkMax && blinkMax>0) {
@@ -819,18 +817,13 @@ Device device;
 
 //put any user code, callbacks, etc here. This is your program.
 
-
 /*****************************************************************************/
 
 void setup() {
   // init  serial
   Serial.begin(9600);
-
-  //Setup your device here
-  
 }
 
 void loop() {  
   device.update();
-  delay(LOOP_DELAY);
 }
