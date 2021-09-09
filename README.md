@@ -193,15 +193,15 @@ __Create with:__
 ```
 _pressMode_ defines if the button is HIGH or LOW when pressed and/or whether the internal pullup resistor should be enabled.
 Values: 
-* BUTTON_PRESS_HIGH (default)
+* BUTTON_PRESS_HIGH 
 * BUTTON_PRESS_LOW 
-* BUTTON_INPUT_PULLUP 
+* BUTTON_INPUT_PULLUP (default)
 
 EX:
 ```c++
-    //both buttons will be "pressed" when HIGH
+    //both buttons will be "pressed" when LOW
     device.button("btn1", 4); 
-    device.button("btn2", 3, BUTTON_PRESS_HIGH);
+    device.button("btn2", 3, BUTTON_INPUT_PULLUP);
 ```
 
 __Events__

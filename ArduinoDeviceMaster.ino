@@ -1,8 +1,8 @@
 /******************************************************************************
   Arduino Device Master
   Author: Jonathan Wyett
-  Version: 1.1.2
-  Date: 2021-09-08
+  Version: 2.0.0
+  Date: 2021-09-09
 /*****************************************************************************/
 
 
@@ -58,6 +58,7 @@ typedef void (*oneParamCallback)(int);
             counts[slot] = count;
             msgs[slot] = msg;
             names[slot] = intervalName;
+            lastRuns[slot] = millis();
             return true;
         } else {
           return false;
@@ -256,10 +257,10 @@ typedef void (*oneParamCallback)(int);
 #if defined TOTAL_BUTTONS || defined TOTAL_ROTARY_ENCODERS
   class Button {
     public:
-      byte state = LOW;
-      byte oldState = LOW;
+      byte state = HIGH;
+      byte oldState = HIGH;
       byte pin;
-      byte pressMode = BUTTON_PRESS_HIGH; 
+      byte pressMode = BUTTON_INPUT_PULLUP; 
       const char *name;
       
       void init(const char *newName, byte newPin, byte newMode) {
@@ -270,6 +271,12 @@ typedef void (*oneParamCallback)(int);
           pinMode(pin, INPUT_PULLUP);  
         } else {
           pinMode(pin, INPUT);
+        }
+
+        //Reverse the starting state if setting press to HIGH
+        if (pressMode==BUTTON_PRESS_HIGH) {
+          state = LOW;
+          oldState = LOW;
         }
         
         #ifdef admDebug
@@ -631,7 +638,7 @@ class Device {
       //MAYBE TODO: delegate overloaded constructors to private init()
       void addButton(const char *newName, byte newPin) {
         if (totalSetupButtons<TOTAL_BUTTONS) {
-          buttons[totalSetupButtons].init(newName, newPin, BUTTON_PRESS_HIGH);
+          buttons[totalSetupButtons].init(newName, newPin, BUTTON_INPUT_PULLUP);
           totalSetupButtons++;
         } else {
           #ifdef admDebug
@@ -818,11 +825,14 @@ Device device;
 
 //put any user code, callbacks, etc here. This is your program.
 
+
 /*****************************************************************************/
 
 void setup() {
   // init  serial
   Serial.begin(9600);
+
+  
 }
 
 void loop() {  
