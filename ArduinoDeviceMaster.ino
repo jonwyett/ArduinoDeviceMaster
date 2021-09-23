@@ -1,8 +1,8 @@
 /******************************************************************************
   Arduino Device Master
   Author: Jonathan Wyett
-  Version: 2.0.0
-  Date: 2021-09-09
+  Version: 2.0.1
+  Date: 2021-09-23
 /*****************************************************************************/
 
 
@@ -587,11 +587,10 @@ typedef void (*oneParamCallback)(int);
         }
         void initBlink(int delay, int count) {
           blinkCount = 0;
-          blinkMax = (count *2)+1; //since each blink is 2 flips  
-          lastBlinkTime = 0;
+          blinkMax = (count *2); //since each blink is 2 flips  
+          lastBlinkTime = millis() - delay; //so that the first blink starts immedietely
           blinking = true;
           blinkDelay = delay/2; //since we need to flip
-          setState(HIGH); //blink should illuminate immediately  
          }
 
         void clearBlink() {
@@ -604,9 +603,7 @@ typedef void (*oneParamCallback)(int);
          
         void runBlink() {
           if (blinking) {
-            //Serial.print(millis()-lastBlinkTime);
-            //Serial.print("/");
-            //Serial.println(blinkDelay);
+
             if (millis()-lastBlinkTime>=blinkDelay) {
               lastBlinkTime = millis();
               blinkCount++;
@@ -817,22 +814,11 @@ class Device {
 //DEVICE DECLARATION
 Device device; 
 
-/*****************************************************************************/
-/******      USER PROGRAM SECTION   ******************************************/
-/*****************************************************************************/
-/*****************************************************************************/
-
-
-//put any user code, callbacks, etc here. This is your program.
-
-
-/*****************************************************************************/
-
 void setup() {
   // init  serial
   Serial.begin(9600);
-
-  
+  Serial.println("----START TEST----");
+ 
 }
 
 void loop() {  
