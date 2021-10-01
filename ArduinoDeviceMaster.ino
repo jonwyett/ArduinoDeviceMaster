@@ -1,8 +1,8 @@
 /******************************************************************************
   Arduino Device Master
   Author: Jonathan Wyett
-  Version: 2.0.1
-  Date: 2021-09-23
+  Version: 2.1.0
+  Date: 2021-10-01
 /*****************************************************************************/
 
 
@@ -10,8 +10,8 @@
 /****** DEVICE CONFIG SECTION     ********************************************/
 #define admDebug Serial //uncomment to see DeviceMaster debug info
 //how many of each type of component, comment out for 0
-#define TOTAL_LEDS 10 
-#define TOTAL_BUTTONS 5
+#define TOTAL_LEDS 5 
+#define TOTAL_BUTTONS 3
 #define TOTAL_POTS 3
 #define TOTAL_ROTARY_ENCODERS 1
 //how many intervals do you need at once, comment out for 0
@@ -175,8 +175,8 @@ typedef void (*oneParamCallback)(int);
 #ifdef TOTAL_POTS
   class Pot {
     public:
-      int state = 0;
-      int oldState = 0;
+      unsigned int state = 0;
+      unsigned int oldState = 0;
       byte pin;
       const char *name;
       unsigned int max = 1024; //the max value of the pot (native)
@@ -437,7 +437,6 @@ typedef void (*oneParamCallback)(int);
       bool isRGB = false;
       bool isDimmable = false;
       bool commonAnode = true;
-      byte level = 0;
       const char *name;
 
       //Regular LEDs
@@ -483,10 +482,13 @@ typedef void (*oneParamCallback)(int);
       
       void turnOff() {
         clearBlink();
+        clearPulse();
         setState(LOW);
       }
       
       void setLevel(byte newLevel) {
+        isDimmable = true;
+        //level = map(newLevel, 0, 100, 0, 255);
         level = newLevel;
         //setState() also writes the state to the LED
         //se we want to set the new level if the state is already high        
@@ -531,26 +533,42 @@ typedef void (*oneParamCallback)(int);
         }
       }  
 
-      void blink(int delay) {
+      void pulse(unsigned int pDelay, unsigned int count, byte low, byte high) {
+        initPulse(pDelay, count, low, high);  
+      }
+      
+      void blink(unsigned int delay) {
         initBlink(delay, 0);
       }
       
-      void blink(int delay, int count) {
+      void blink(unsigned int delay, unsigned int count) {
         initBlink(delay, count);  
       }
   
       void update() {
         //run the blink routine
         runBlink();
+        //run the pulse routine
+        runPulse();
       }
   
       private:
-        int blinkCount = 0;
-        int blinkMax = 0;
+        byte level = 0;
+        unsigned int blinkCount = 0;
+        unsigned int blinkMax = 0;
         unsigned long lastBlinkTime = 0;
-        int blinkDelay = 0;
+        unsigned int blinkDelay = 0;
         bool blinking = false;
 
+        unsigned int pulseCount = 0; //how many times have we pulsed
+        unsigned int pulseMax = 0; //max number of times to pulse
+        byte pulseLow = 0; //minimum pulse level
+        byte pulseHigh = 255; //maximum pulse level
+        float pulseStep = 0; //how much the level should increase each millisec
+        bool pulseUp = true; //are we leveling up or back down
+        unsigned long lastPulseTime = 0; //the last time we were at low or high
+        bool pulsing = false; //are we currently pulsing
+        
         void setState(byte newState) {
           state = newState;
           if (isRGB) {
@@ -578,19 +596,86 @@ typedef void (*oneParamCallback)(int);
           } else if (isDimmable) {
             analogWrite(pin, (state==HIGH) ? level : LOW); 
             #ifdef admDebug
-              admDebug.print("LED set to: ");
-              admDebug.println(level);
+              //admDebug.print("LED set to: ");
+              //admDebug.println(level);
             #endif
           } else {
             digitalWrite(pin, state);
           } 
         }
-        void initBlink(int delay, int count) {
+
+        void initPulse(float pDelay, float count, float low, float high) {
+          #ifdef admDebug
+            admDebug.print("Initiate Pulse on '");
+            admDebug.print(name);
+            admDebug.println("'");
+          #endif
+          
+          clearBlink();
+          clearPulse();
+          
+          pulseLow = low;
+          pulseHigh = high;  
+          pulseMax = count;  
+          pulseStep = (pulseHigh-pulseLow)/(pDelay/2);
+          lastPulseTime = millis(); //start now
+          pulsing = true;
+          
+          setLevel(pulseLow);  
+          setState(HIGH);   
+        }
+
+        void clearPulse() {
+          pulseCount = 0; 
+          pulseMax = 0; 
+          pulseLow = 0;
+          pulseHigh = 0;
+          pulseStep = 0;
+          pulseUp = true;
+          pulsing = false;
+        }
+
+        void runPulse() {
+          if (pulsing) {
+            float desiredLevel;
+            if (pulseUp) {
+              desiredLevel = (millis()-lastPulseTime) * pulseStep; 
+              if (desiredLevel >= pulseHigh) {
+                pulseUp = false;
+                lastPulseTime = millis();
+              }
+            } else {
+              desiredLevel = pulseHigh-(millis()-lastPulseTime) * pulseStep;  
+              if (desiredLevel<=pulseLow) {
+                lastPulseTime = millis();
+                pulseUp = true;
+                pulseCount++;
+              }
+            }
+            
+            //clamp the desired Level
+            if (desiredLevel>pulseHigh) { desiredLevel = pulseHigh; }
+            if (desiredLevel<pulseLow) { desiredLevel = pulseLow; }
+            
+            if (level != desiredLevel) {
+              level = desiredLevel;
+              setState(HIGH);
+            }
+            
+            if (pulseCount>=pulseMax && pulseMax>0) {
+              clearPulse();
+              setState(LOW);
+            }          
+          }
+        }
+        
+        void initBlink(unsigned int bDelay, unsigned int count) {
+          clearPulse();
           blinkCount = 0;
           blinkMax = (count *2); //since each blink is 2 flips  
-          lastBlinkTime = millis() - delay; //so that the first blink starts immedietely
+          lastBlinkTime = millis() - bDelay; //so that the first blink starts immedietely
           blinking = true;
-          blinkDelay = delay/2; //since we need to flip
+          blinkDelay = bDelay/2; //since we need to flip
          }
 
         void clearBlink() {
@@ -632,7 +717,6 @@ class Device {
         }  
       }
 
-      //MAYBE TODO: delegate overloaded constructors to private init()
       void addButton(const char *newName, byte newPin) {
         if (totalSetupButtons<TOTAL_BUTTONS) {
           buttons[totalSetupButtons].init(newName, newPin, BUTTON_INPUT_PULLUP);
@@ -814,13 +898,17 @@ class Device {
 //DEVICE DECLARATION
 Device device; 
 
+/*
 void setup() {
   // init  serial
   Serial.begin(9600);
   Serial.println("----START TEST----");
- 
+
+  
 }
 
 void loop() {  
   device.update();
 }
+
+*/
