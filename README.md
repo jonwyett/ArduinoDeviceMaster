@@ -290,13 +290,15 @@ __Commands__
 * turnOff()
 * flip()
 * blink(delay), blink(delay, count)
+* pulse(delay, count, low, high)
 * setLevel(0-255)
 * setColor(0-255, 0-255, 0-255)
 
 __turnOn & turnOff__ turns on and off the LED, regardless of color or dim setting. __turnOff__ also stops a blinking LED.  
 __flip__ flips the LED state from on to off and visa versa.  
 __blink(delay, optional count)__ blinks the light, delay is the total time on & off, count is how many times to blink, __0__ for unlimited. If you set the blink to unlimited you can use turnOff() to stop the blinking.  
-__setLevel(level)__ level 0-255. Only works if setDimmable is true. You can set the level when the LED is off and it will be that level when you turn it back on.  
+__pulse(delay, count, low, high)__ pulses the LED from low to high. Delay is the length of 1 on-off pulse and count is the number of pulses (on-off).  
+__setLevel(level)__ level 0-255. Does not explicitly turn on the LED. You can set the level when the LED is off and it will be that level when you turn it back on.  
 __setColor(R,G,B)__ RGB 0-255. Sets the color, but only if you provide the RGB PINS. Like setLevel you can set the color when the light is off and it will be that color when you turn it back on.  
 
 ---
