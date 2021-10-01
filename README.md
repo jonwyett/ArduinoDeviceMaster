@@ -250,7 +250,9 @@ EX:
 ```
 This will create a pot that only fires 0,25,50,75,100
 
-__avg__ is used to average out the value of a pot to prevent floating. It defines how many readings should be averaged to determine the value. Default is __10__. There is a 1 millisecond loop delay with the framework, so the higher you set this the longer of a delay between a physical change and when an onChange event will trigger. You also run the risk of overflowing the int value that holds the state if it's too high. __10__ should be sufficient, particularly if you're using the __range__ option. You can also combine with a small delta if needed.
+__avg__ is used to average out the value of a pot to prevent floating. It defines how many readings should be averaged to determine the value. Default is __10__. There is a 1 millisecond loop delay with the framework, so the higher you set this the longer of a delay between a physical change and when an onChange event will trigger. You also run the risk of overflowing the int value that holds the state if it's too high. __10__ should be sufficient, particularly if you're using the __range__ option. You can also combine with a small delta if needed.  
+
+__NOTE:__ You can use this class with any type of variable resistor! Works well with photoresistors  for example.
 
 
 ---
