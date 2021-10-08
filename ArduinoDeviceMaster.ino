@@ -1,8 +1,8 @@
 /******************************************************************************
   Arduino Device Master
   Author: Jonathan Wyett
-  Version: 2.1.0
-  Date: 2021-10-01
+  Version: 2.1.1
+  Date: 2021-10-08
 /*****************************************************************************/
 
 
@@ -636,20 +636,42 @@ typedef void (*oneParamCallback)(int);
         }
 
         void runPulse() {
+          /*
+          *  We'll use the analogy of a car traveling back and forth to 
+          *  a destination. How bright the led is is analogous to how far
+          *  the car is, with 100% being all the way there.
+          *
+          *  -pulsing, are we pulsing/driving
+          *  -pulseUp, are we driveing toward the destination or coming back
+          *  -desiredLevel, the distance of the car from the destination
+          *     (75% means 3/4 of the way there)
+          *  -lastPulseTime, the last time the car was at either the start
+          *     or the destination
+          *  -pulseStep, the speed of the car
+          * 
+          *  So for each loop we calculate where the car should be based on
+          *  how much time has passed since the last lap * the speed of the car
+          * 
+          *   desiredLevel = the time since the last lap times the speed or
+          *     or desiredLevel = (millis()-lastPulseTime) * pulseStep; 
+          * 
+          */
           if (pulsing) {
             float desiredLevel;
             if (pulseUp) {
               desiredLevel = (millis()-lastPulseTime) * pulseStep; 
+              //have we reached or passed the goal
               if (desiredLevel >= pulseHigh) {
-                pulseUp = false;
-                lastPulseTime = millis();
+                pulseUp = false; //turn around
+                lastPulseTime = millis(); //note the lap time
               }
             } else {
-              desiredLevel = pulseHigh-(millis()-lastPulseTime) * pulseStep;  
+              //since we're heading back, invert the distance, so 75%->25%
+              desiredLevel = pulseHigh-((millis()-lastPulseTime) * pulseStep);  
               if (desiredLevel<=pulseLow) {
                 lastPulseTime = millis();
-                pulseUp = true;
-                pulseCount++;
+                pulseUp = true; //turn around
+                pulseCount++; //since we went there and back, we've pulsed again
               }
             }
             
@@ -657,11 +679,14 @@ typedef void (*oneParamCallback)(int);
             if (desiredLevel>pulseHigh) { desiredLevel = pulseHigh; }
             if (desiredLevel<pulseLow) { desiredLevel = pulseLow; }
             
+            //if there was a change, change the state
+            //(this func will run several times before the car has moved)
             if (level != desiredLevel) {
               level = desiredLevel;
               setState(HIGH);
             }
             
+            //we've pulsed enough
             if (pulseCount>=pulseMax && pulseMax>0) {
               clearPulse();
               setState(LOW);
